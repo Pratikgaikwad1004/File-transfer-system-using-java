@@ -1,4 +1,6 @@
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -8,8 +10,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+
 // import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -155,33 +160,38 @@ class App {
 
                     try {
 
-                        Socket socket = new Socket("localhost", 4444);
+                        String IP = JOptionPane.showInputDialog(sendFileFrame, "Enter IP address");
+                        if (IP != null) {
 
-                        FileInputStream fileInputStream = new FileInputStream(file[0].getAbsolutePath());
-                        // DataOutputStream for write data in another computer
-                        DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                            Socket socket = new Socket(IP, 4444);
 
-                        // Stored file name in fileName variable
-                        String fileName = file[0].getName();
+                            FileInputStream fileInputStream = new FileInputStream(file[0].getAbsolutePath());
+                            // DataOutputStream for write data in another computer
+                            DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 
-                        // Encode fileName in UTF-8
-                        byte[] fileNameByte = fileName.getBytes();
+                            // Stored file name in fileName variable
+                            String fileName = file[0].getName();
 
-                        // Create byte array
-                        byte[] fileContentByte = new byte[(int) file[0].length()];
+                            // Encode fileName in UTF-8
+                            byte[] fileNameByte = fileName.getBytes();
 
-                        // It read file data
-                        fileInputStream.read(fileContentByte);
+                            // Create byte array
+                            byte[] fileContentByte = new byte[(int) file[0].length()];
 
-                        // Write an int to the output stream
-                        outputStream.writeInt(fileNameByte.length);
+                            // It read file data
+                            fileInputStream.read(fileContentByte);
 
-                        // It write bytes
-                        outputStream.write(fileNameByte);
+                            // Write an int to the output stream
+                            outputStream.writeInt(fileNameByte.length);
 
-                        outputStream.writeInt(fileContentByte.length);
-                        outputStream.write(fileContentByte);
+                            // It write bytes
+                            outputStream.write(fileNameByte);
 
+                            outputStream.writeInt(fileContentByte.length);
+                            outputStream.write(fileContentByte);
+                        } else {
+                            sendFileFrame.validate();
+                        }
                     } catch (Exception error) {
 
                         JOptionPane.showMessageDialog(sendFileFrame, error, "Message", 0);
@@ -199,18 +209,29 @@ class App {
 
         JFrame receiveFileFrame;
         JPanel receiveFilePanel;
-        JLabel fileNameLabel, headerLabel;
+        JLabel fileNameLabel, headerLabel, iPAddressLabel;
 
         receiveFileFrame = new JFrame();
         receiveFilePanel = new JPanel();
         fileNameLabel = new JLabel();
         headerLabel = new JLabel();
+        iPAddressLabel = new JLabel();
+
+        try {
+            InetAddress localhost = InetAddress.getLocalHost();
+            iPAddressLabel.setText("Your IP Address : " + (localhost.getHostAddress()).trim());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
 
         receiveFileFrame.setBounds(750, 300, 400, 200);
         receiveFileFrame.setLayout(new BoxLayout(receiveFileFrame.getContentPane(), BoxLayout.Y_AXIS));
 
-        fileNameLabel.setFont(new Font("Serif", Font.PLAIN, 18));
+        fileNameLabel.setFont(new Font("Serif", Font.PLAIN, 15));
         fileNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        iPAddressLabel.setFont(new Font("Serif", Font.PLAIN, 12));
+        iPAddressLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         headerLabel.setText("Received Files");
         headerLabel.setFont(new Font("Serif", Font.BOLD, 20));
@@ -219,6 +240,7 @@ class App {
         receiveFilePanel.add(fileNameLabel);
 
         receiveFileFrame.add(headerLabel);
+        receiveFileFrame.add(iPAddressLabel);
         receiveFileFrame.add(receiveFilePanel);
 
         receiveFileFrame.setVisible(true);
